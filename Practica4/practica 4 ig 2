@@ -1,0 +1,4 @@
+en el draw solido hay que cambiar el glColor por un glMaterial.
+
+al final del objeto ply debemos ponerlo al calcular las caras.
+
