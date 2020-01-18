@@ -2,11 +2,11 @@
 #
 # nombre del fichero ejecutable
 #
-TARGETS= practica_objetos_B5
+TARGETS= seleccion_color
 
 # banderas para el compilador (C y C++). Se indican los directorios donde se puenden
 # encontrar ficheros para incluir mediante la opcion -I
-# la opcion -g sirve para permitir la depuracion
+# la opcion -g sirve para permitir la depuración
 #
 CFLAGS=    -g -DXWINDOWS -DSHM -I/usr/include -I.
 CXXFLAGS=  -g -DXWINDOWS -DSHM -I/usr/include -I.
@@ -27,8 +27,8 @@ default : $(TARGETS)
 
 # regla de ejecucion
 #
-$(TARGETS) : file_ply_stl.o objetos_B5.o practica_objetos_B5.o
-	$(CC) -o $@ $(CXXFLAGS) file_ply_stl.o objetos_B5.o practica_objetos_B5.o $(LDFLAGS)
+$(TARGETS) :  user_code_seleccion_color.o seleccion_color.o
+	$(CC) -o $@ $(CXXFLAGS)  user_code_seleccion_color.o seleccion_color.o $(LDFLAGS)
 
 #
 #
@@ -56,3 +56,4 @@ tgz:
 	rm *~
 	rm -f $(TARGETS)
 	tar -zcvf $(TARGETS).tgz *
+

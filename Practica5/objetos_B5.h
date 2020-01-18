@@ -1,5 +1,5 @@
 //**************************************************************************
-// Práctica 1 usando objetos
+// Práctica 5
 //**************************************************************************
 
 #include <vector>
@@ -43,8 +43,8 @@ void 	draw_solido_ajedrez(float r1, float g1, float b1, float r2, float g2, floa
 void 	draw(_modo modo, float r1, float g1, float b1, float r2, float g2, float b2, float grosor);
 void draw_solido_cara(float r1, float g1, float b1, float r2, float g2, float b2, int n);
 
-draw_solido_seleccion_completa(float r, float g, float b);
-draw_solido_seleccion_cara(float r, float g, float b);
+//draw_solido_seleccion_completa(float r, float g, float b);
+//draw_solido_seleccion_cara(float r, float g, float b);
 
 
 vector<_vertex3i> caras;
