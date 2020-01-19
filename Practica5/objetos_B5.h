@@ -37,15 +37,15 @@ class _triangulos3D: public _puntos3D
 public:
 
 	_triangulos3D();
-void 	draw_aristas(float r, float g, float b, int grosor);
-void    draw_solido(float r, float g, float b);
-void 	draw_solido_ajedrez(float r1, float g1, float b1, float r2, float g2, float b2);
-void 	draw(_modo modo, float r1, float g1, float b1, float r2, float g2, float b2, float grosor);
+void draw_aristas(float r, float g, float b, int grosor);
+void draw_solido(float r, float g, float b, int nro);
+void draw_solido_ajedrez(float r1, float g1, float b1, float r2, float g2, float b2, int nro);
+void draw(_modo modo, float r1, float g1, float b1, float r2, float g2, float b2, float grosor, int nro);
 void draw_solido_cara(float r1, float g1, float b1, float r2, float g2, float b2, int n);
-
 //draw_solido_seleccion_completa(float r, float g, float b);
 //draw_solido_seleccion_cara(float r, float g, float b);
 
+vector<bool> vec_tri;
 
 vector<_vertex3i> caras;
 };
@@ -58,8 +58,8 @@ vector<_vertex3i> caras;
 class _cubo: public _triangulos3D
 {
 public:
-
 	_cubo(float tam=0.5);
+	void draw(_modo modo, float r1, float g1, float b1, float r2, float g2, float b2, float grosor, int nro);
 };
 
 
@@ -95,7 +95,7 @@ class _rotacion: public _triangulos3D
 public:
        _rotacion();
 void  parametros(vector<_vertex3f> perfil1, int num1, int tapas);
-
+//void draw(_modo modo, float r1, float g1, float b1, float r2, float g2, float b2, float grosor, int nro);
 vector<_vertex3f> perfil;
 int num;
 };
@@ -109,7 +109,7 @@ class _chasis: public _triangulos3D
 {
 public:
        _chasis();
-void 	draw(_modo modo, float r1, float g1, float b1, float r2, float g2, float b2, float grosor);
+void 	draw(_modo modo, float r1, float g1, float b1, float r2, float g2, float b2, float grosor, int nro );
 
 float altura;
 
@@ -124,7 +124,7 @@ class _torreta: public _triangulos3D
 {
 public:
        _torreta();
-void 	draw(_modo modo, float r1, float g1, float b1, float r2, float g2, float b2, float grosor);
+void 	draw(_modo modo, float r1, float g1, float b1, float r2, float g2, float b2, float grosor, int nro );
 
 float altura;
 float anchura;
@@ -140,7 +140,7 @@ class _tubo: public _triangulos3D
 {
 public:
        _tubo();
-void 	draw(_modo modo, float r1, float g1, float b1, float r2, float g2, float b2, float grosor);
+void 	draw(_modo modo, float r1, float g1, float b1, float r2, float g2, float b2, float grosor, int nro );
 
 protected:
 _rotacion tubo_abierto; // caña del cañón
@@ -152,7 +152,7 @@ class _tanque: public _triangulos3D
 {
 public:
        _tanque();
-void 	draw(_modo modo, float r1, float g1, float b1, float r2, float g2, float b2, float grosor);
+void 	draw(_modo modo, float r1, float g1, float b1, float r2, float g2, float b2, float grosor, int nro );
 
 float giro_tubo;
 float giro_torreta;
@@ -174,11 +174,11 @@ class _pata: public _triangulos3D
 {
 public:
       _pata();
-void 	draw(_modo modo, float r1, float g1, float b1, float r2, float g2, float b2, float grosor, float altura_patas);
-
+void 	draw(_modo modo, float r1, float g1, float b1, float r2, float g2, float b2, float grosor, float altura_patas, int pos, int nro );
+vector<bool> vec_tri;
 float altura_pata;
+vector<bool> seleccionado;
 
-protected:
 _rotacion pata;
 };
 
@@ -186,7 +186,7 @@ class _camara: public _triangulos3D
 {
 public:
       _camara();
-void 	draw(_modo modo, float r1, float g1, float b1, float r2, float g2, float b2, float grosor);
+void 	draw(_modo modo, float r1, float g1, float b1, float r2, float g2, float b2, float grosor, int nro );
 
 float altura_camara;
 float m_armazon;
@@ -197,7 +197,8 @@ float alt_click;
 float alt_objetivo;
 float zoom = 1;
 float beta = 0;
-protected:
+bool seleccionado;
+
 _rotacion objetivo;
 _cubo armazon;
 _cubo click;
@@ -207,12 +208,12 @@ class _cabeza: public _triangulos3D
 {
 public:
       _cabeza();
-void 	draw(_modo modo, float r1, float g1, float b1, float r2, float g2, float b2, float grosor);
+void 	draw(_modo modo, float r1, float g1, float b1, float r2, float g2, float b2, float grosor, int nro );
 
 float altura_cabeza;
 float ancho_base;
+bool seleccionado;
 
-protected:
 _rotacion base;
 };
 
@@ -220,7 +221,7 @@ class _tripode: public _triangulos3D
 {
 public:
       _tripode();
-void 	draw(_modo modo, float r1, float g1, float b1, float r2, float g2, float b2, float grosor);
+void 	draw(_modo modo, float r1, float g1, float b1, float r2, float g2, float b2, float grosor, int nro );
 
 float altura;
 float alfa = 0;
@@ -233,7 +234,6 @@ float MAX_alfa;
 float MIN_alfa;
 float altura_pata_max;
 float altura_pata_min;
-protected:
 _pata pata;
 _cabeza cabeza;
 _camara camara;

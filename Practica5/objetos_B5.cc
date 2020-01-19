@@ -44,6 +44,11 @@ glEnd();*/
 
 _triangulos3D::_triangulos3D()
 {
+	vec_tri.resize(100);
+	for (int i=0; i<vec_tri.size(); i++){
+		vec_tri[i] = false;
+		cout << vec_tri[i];
+	}
 }
 
 
@@ -79,26 +84,34 @@ glEnd();*/
 // dibujar en modo sólido
 //*************************************************************************
 
-void _triangulos3D::draw_solido(float r, float g, float b)
+void _triangulos3D::draw_solido(float r, float g, float b, int nro)
 {
 int i;
-
-glPolygonMode(GL_FRONT_AND_BACK,GL_FILL);
-glColor3f(r,g,b);
 glBegin(GL_TRIANGLES);
+glPushMatrix();
+glPolygonMode(GL_FRONT_AND_BACK,GL_FILL);
+//Para la seleccion de caras, si esta selecciona sale en amarillo
 for (i=0;i<caras.size();i++){
+	glPolygonMode(GL_FRONT_AND_BACK,GL_FILL);
+	glPushMatrix();
+	if (vec_tri[i]){
+		glColor3f(255,255,0);
+	} else 	glColor3f(r,g,b);
+	glBegin(GL_TRIANGLES);
+	//glLoadName(nro + i);
 	glVertex3fv((GLfloat *) &vertices[caras[i]._0]);
 	glVertex3fv((GLfloat *) &vertices[caras[i]._1]);
 	glVertex3fv((GLfloat *) &vertices[caras[i]._2]);
+	glEnd();
 	}
-glEnd();
+
 }
 
 //*************************************************************************
 // dibujar en modo sólido con apariencia de ajedrez
 //*************************************************************************
 
-void _triangulos3D::draw_solido_ajedrez(float r1, float g1, float b1, float r2, float g2, float b2)
+void _triangulos3D::draw_solido_ajedrez(float r1, float g1, float b1, float r2, float g2, float b2, int nro)
 {
 int i;
 glPolygonMode(GL_FRONT_AND_BACK,GL_FILL);
@@ -106,6 +119,7 @@ glBegin(GL_TRIANGLES);
 for (i=0;i<caras.size();i++){
 	if (i%2==0) glColor3f(r1,g1,b1);
 	else glColor3f(r2,g2,b2);
+	/*glLoadName(nro + i);*/
 	glVertex3fv((GLfloat *) &vertices[caras[i]._0]);
 	glVertex3fv((GLfloat *) &vertices[caras[i]._1]);
 	glVertex3fv((GLfloat *) &vertices[caras[i]._2]);
@@ -117,13 +131,13 @@ glEnd();
 // dibujar con distintos modos
 //*************************************************************************
 
-void _triangulos3D::draw(_modo modo, float r1, float g1, float b1, float r2, float g2, float b2, float grosor)
+void _triangulos3D::draw(_modo modo, float r1, float g1, float b1, float r2, float g2, float b2, float grosor, int nro)
 {
 switch (modo){
 	case POINTS:draw_puntos(r1, g1, b1, grosor);break;
 	case EDGES:draw_aristas(r1, g1, b1, grosor);break;
-	case SOLID_CHESS:draw_solido_ajedrez(r1, g1, b1, r2, g2, b2);break;
-	case SOLID:draw_solido(r1, g1, b1);break;
+	case SOLID_CHESS:draw_solido_ajedrez(r1, g1, b1, r2, g2, b2, nro);break;
+	case SOLID:draw_solido(r1, g1, b1, nro);break;
 	}
 }
 
@@ -160,6 +174,35 @@ caras[10]._0=0;caras[10]._1=1;caras[10]._2=4;
 caras[11]._0=1;caras[11]._1=5;caras[11]._2=4;
 }
 
+void _cubo::draw(_modo modo, float r1, float g1, float b1, float r2, float g2, float b2, float grosor, int nro ){
+	switch (modo){
+		case POINTS:draw_puntos(r1, g1, b1, grosor);break;
+		case EDGES:draw_aristas(r1, g1, b1, grosor);break;
+		default:
+		int i;
+		glPolygonMode(GL_FRONT_AND_BACK,GL_FILL);
+		glPushMatrix();
+		for (i=0;i<caras.size();i++){
+			glLoadName(nro + i);
+			glBegin(GL_TRIANGLES);
+			std::cout << vec_tri[i];
+			if (vec_tri[i]){
+				std::cout << "Entro";
+				glColor3f(255,255,0);
+			} else{
+				glColor3f(r1,g1,b1);
+			}
+
+			glVertex3fv((GLfloat *) &vertices[caras[i]._0]);
+			glVertex3fv((GLfloat *) &vertices[caras[i]._1]);
+			glVertex3fv((GLfloat *) &vertices[caras[i]._2]);
+			glEnd();
+			}
+			glPopMatrix();
+		break;
+	}
+}
+
 
 //*************************************************************************
 // clase piramide
@@ -183,6 +226,7 @@ caras[2]._0=2;caras[2]._1=3;caras[2]._2=4;
 caras[3]._0=3;caras[3]._1=0;caras[3]._2=4;
 caras[4]._0=3;caras[4]._1=1;caras[4]._2=0;
 caras[5]._0=3;caras[5]._1=2;caras[5]._2=1;
+
 }
 
 //*************************************************************************
@@ -249,7 +293,6 @@ _rotacion::_rotacion()
 {
 
 }
-
 
 void _rotacion::parametros(vector<_vertex3f> perfil, int num, int tapa)
 {
@@ -321,7 +364,36 @@ for (j=0;j<num;j++)
 			caras.push_back(cara_aux);
 		}
 	}
-}
+};
+
+/*void _rotacion::draw(_modo modo, float r1, float g1, float b1, float r2, float g2, float b2, float grosor, int nro ){
+	switch (modo){
+		case POINTS:draw_puntos(r1, g1, b1, grosor);break;
+		case EDGES:draw_aristas(r1, g1, b1, grosor);break;
+		default:
+		int i;
+		glPolygonMode(GL_FRONT_AND_BACK,GL_FILL);
+		glPushMatrix();
+		for (i=0;i<caras.size();i++){
+			glLoadName(nro + i);
+			glBegin(GL_TRIANGLES);
+			std::cout << vec_tri[i];
+			if (vec_tri[i]){
+				std::cout << "Entro";
+				glColor3f(255,255,0);
+			} else{
+				glColor3f(r1,g1,b1);
+			}
+
+			glVertex3fv((GLfloat *) &vertices[caras[i]._0]);
+			glVertex3fv((GLfloat *) &vertices[caras[i]._1]);
+			glVertex3fv((GLfloat *) &vertices[caras[i]._2]);
+			glEnd();
+			}
+			glPopMatrix();
+		break;
+	}
+}*/
 
 //************************************************************************
 // objeto articulado: tanque
@@ -340,40 +412,40 @@ rodamiento.parametros(perfil,12,1);
 altura=0.22;
 };
 
-void _chasis::draw(_modo modo, float r1, float g1, float b1, float r2, float g2, float b2, float grosor)
+void _chasis::draw(_modo modo, float r1, float g1, float b1, float r2, float g2, float b2, float grosor, int nro)
 {
 glPushMatrix();
 glScalef(1.0,0.22,0.95);
-base.draw(modo, r1, g1, b1, r2, g2, b2, grosor);
+base.draw(modo, r1, g1, b1, r2, g2, b2, grosor, 0);
 glPopMatrix();
 
 glPushMatrix();
 glRotatef(90.0,1,0,0);
-rodamiento.draw(modo, r1, g1, b1, r2, g2, b2, grosor);
+rodamiento.draw(modo, r1, g1, b1, r2, g2, b2, grosor, 0);
 glPopMatrix();
 
 glPushMatrix();
 glTranslatef(-0.25,0.0,0.0);
 glRotatef(90.0,1,0,0);
-rodamiento.draw(modo, r1, g1, b1, r2, g2, b2, grosor);
+rodamiento.draw(modo, r1, g1, b1, r2, g2, b2, grosor, 0);
 glPopMatrix();
 
 glPushMatrix();
 glTranslatef(-0.5,0.0,0.0);
 glRotatef(90.0,1,0,0);
-rodamiento.draw(modo, r1, g1, b1, r2, g2, b2, grosor);
+rodamiento.draw(modo, r1, g1, b1, r2, g2, b2, grosor, 0);
 glPopMatrix();
 
 glPushMatrix();
 glTranslatef(0.25,0.0,0.0);
 glRotatef(90.0,1,0,0);
-rodamiento.draw(modo, r1, g1, b1, r2, g2, b2, grosor);
+rodamiento.draw(modo, r1, g1, b1, r2, g2, b2, grosor, 0);
 glPopMatrix();
 
 glPushMatrix();
 glTranslatef(0.5,0.0,0.0);
 glRotatef(90.0,1,0,0);
-rodamiento.draw(modo, r1, g1, b1, r2, g2, b2, grosor);
+rodamiento.draw(modo, r1, g1, b1, r2, g2, b2, grosor, 0);
 glPopMatrix();
 }
 
@@ -385,18 +457,18 @@ altura=0.18;
 anchura=0.65;
 };
 
-void _torreta::draw(_modo modo, float r1, float g1, float b1, float r2, float g2, float b2, float grosor)
+void _torreta::draw(_modo modo, float r1, float g1, float b1, float r2, float g2, float b2, float grosor, int nro)
 {
 glPushMatrix();
 glScalef(0.65,0.18,0.6);
-base.draw(modo, r1, g1, b1, r2, g2, b2, grosor);
+base.draw(modo, r1, g1, b1, r2, g2, b2, grosor, 0);
 glPopMatrix();
 
 glPushMatrix();
 glTranslatef(-0.325,0,0);
 glRotatef(90.0,0,0,1);
 glScalef(0.18,0.16,0.6);
-parte_trasera.draw(modo, r1, g1, b1, r2, g2, b2, grosor);
+parte_trasera.draw(modo, r1, g1, b1, r2, g2, b2, grosor, 0);
 glPopMatrix();
 }
 
@@ -414,13 +486,13 @@ perfil.push_back(aux);
 tubo_abierto.parametros(perfil,12,0);
 };
 
-void _tubo::draw(_modo modo, float r1, float g1, float b1, float r2, float g2, float b2, float grosor)
+void _tubo::draw(_modo modo, float r1, float g1, float b1, float r2, float g2, float b2, float grosor, int nro)
 {
 
 glPushMatrix();
 glTranslatef(0.4,0,0);
 glRotatef(90.0,0,0,1);
-tubo_abierto.draw(modo, r1, g1, b1, r2, g2, b2, grosor);
+tubo_abierto.draw(modo, r1, g1, b1, r2, g2, b2, grosor, 0);
 glPopMatrix();
 }
 
@@ -435,21 +507,21 @@ giro_tubo_min=-9;
 giro_tubo_max=20;
 };
 
-void _tanque::draw(_modo modo, float r1, float g1, float b1, float r2, float g2, float b2, float grosor)
+void _tanque::draw(_modo modo, float r1, float g1, float b1, float r2, float g2, float b2, float grosor, int nro)
 {
 glPushMatrix();
-chasis.draw(modo, r1, g1, b1, r2, g2, b2, grosor);
+chasis.draw(modo, r1, g1, b1, r2, g2, b2, grosor, 0);
 
 glRotatef(giro_torreta,0,1,0);
 glPushMatrix();
 glTranslatef(0.0,(chasis.altura+torreta.altura)/2.0,0.0);
-torreta.draw(modo, r1, g1, b1, r2, g2, b2, grosor);
+torreta.draw(modo, r1, g1, b1, r2, g2, b2, grosor, 0);
 glPopMatrix();
 
 glPushMatrix();
 glTranslatef(torreta.anchura/2.0,(chasis.altura+torreta.altura)/2.0,0.0);
 glRotatef(giro_tubo,0,0,1);
-tubo.draw(modo, r1, g1, b1, r2, g2, b2, grosor);
+tubo.draw(modo, r1, g1, b1, r2, g2, b2, grosor, 0);
 glPopMatrix();
 glPopMatrix();
 
@@ -468,28 +540,33 @@ _tripode::_tripode()
 	altura_pata_min = -0.5;
 }
 
-void _tripode::draw(_modo modo, float r1, float g1, float b1, float r2, float g2, float b2, float grosor)
+void _tripode::draw(_modo modo, float r1, float g1, float b1, float r2, float g2, float b2, float grosor, int nro)
 {
 camara.zoom = zoom;
 camara.beta = beta;
 
 	glPushMatrix();
 		glTranslatef(0,0,(cabeza.ancho_base/2));
-		pata.draw(modo,0.5,0.7,0.2,0.3,0.6,0.3,2,altura_pata);
+		glLoadName(1);
+		pata.draw(modo,0.5,0.7,0.2,0.3,0.6,0.3,2,altura_pata, 0, 0);
 	glPopMatrix();
 	glPushMatrix();
 		glTranslatef((cabeza.ancho_base/2), 0, -(cabeza.ancho_base/2));
-		pata.draw(modo,0.5,0.7,0.2,0.3,0.6,0.3,2,altura_pata);
+		glLoadName(2);
+		pata.draw(modo,0.5,0.7,0.2,0.3,0.6,0.3,2,altura_pata, 1, 0);
 	glPopMatrix();
 	glPushMatrix();
 		glTranslatef(-(cabeza.ancho_base/2), 0,-(cabeza.ancho_base/2));
-		pata.draw(modo,0.5,0.7,0.2,0.3,0.6,0.3,2,altura_pata);
+		glLoadName(3);
+		pata.draw(modo,0.5,0.7,0.2,0.3,0.6,0.3,2,altura_pata, 2, 0);
 	glPopMatrix();
 	glPushMatrix();
 		glTranslatef(0, altura_pata*2, 0);
 		glRotatef(alfa,0,1,0);
-		cabeza.draw(modo,0.5,0.7,0.2,0.3,0.6,0.3,2);
-		camara.draw(modo,0.5,0.7,0.2,0.3,0.6,0.3,2);
+		glLoadName(4);
+		cabeza.draw(modo,0.5,0.7,0.2,0.3,0.6,0.3,2, 0);
+		glLoadName(5);
+		camara.draw(modo,0.5,0.7,0.2,0.3,0.6,0.3,2, 0);
 	glPopMatrix();
 }
 
@@ -512,20 +589,28 @@ _camara::_camara()
 	armazon = _cubo(m_armazon);
 }
 
-void _camara::draw(_modo modo, float r1, float g1, float b1, float r2, float g2, float b2, float grosor)
+void _camara::draw(_modo modo, float r1, float g1, float b1, float r2, float g2, float b2, float grosor, int nro)
 {
+	if (seleccionado){
+		r1 = 0;
+		g1 = 0;
+		b1 = 255;
+		r2 = 255;
+		g2 = 0;
+		b2 = 0;
+	}
 	//armazon
 	glPushMatrix();
 		glTranslatef(0,altura_camara,0);
 		glScalef(m_armazon*2,m_armazon+(m_armazon/2),m_armazon);
-		armazon.draw(modo, r1, g1, b1, r2, g2, b2, grosor);
+		armazon.draw(modo, r1, g1, b1, r2, g2, b2, grosor, 100);
 	glPopMatrix();
 
 	//click
 	glPushMatrix();
 		glTranslatef((m_armazon*2)/4,alt_click,0);
 		glScalef(m_click,m_click/2,m_click);
-		click.draw(modo, r1, g1, b1, r2, g2, b2, grosor);
+		click.draw(modo, r1, g1, b1, r2, g2, b2, grosor,200);
 	glPopMatrix();
 
 	//objetivo
@@ -535,7 +620,7 @@ void _camara::draw(_modo modo, float r1, float g1, float b1, float r2, float g2,
 		glRotatef(beta,0,1,0);
 		glScalef(m_objetivo*1.5,m_objetivo*0.15*zoom,m_objetivo*1.5);
 		glTranslatef(0,0.5,0);
-		objetivo.draw(modo, r1, g1, b1, r2, g2, b2, grosor);
+		objetivo.draw(modo, r1, g1, b1, r2, g2, b2, grosor,300);
 	glPopMatrix();
 
 };
@@ -553,19 +638,27 @@ _cabeza::_cabeza()
 	ancho_base=0.107*3;
 }
 
-void _cabeza::draw(_modo modo, float r1, float g1, float b1, float r2, float g2, float b2, float grosor)
+void _cabeza::draw(_modo modo, float r1, float g1, float b1, float r2, float g2, float b2, float grosor, int nro)
 {
+	if (seleccionado){
+		r1 = 0;
+		g1 = 0;
+		b1 = 255;
+		r2 = 255;
+		g2 = 0;
+		b2 = 0;
+	}
 	//cabeza grande
 	glPushMatrix();
 		glScalef(3,0.15,3);
-		base.draw(modo, r1, g1, b1, r2, g2, b2, grosor);
+		base.draw(modo, r1, g1, b1, r2, g2, b2, grosor, 400);
 	glPopMatrix();
 
 	//cabeza pequeña
 	glPushMatrix();
 		glTranslatef(0,0.15,0);
 		glScalef(0.25,0.15,0.25);
-		base.draw(modo, r1, g1, b1, r2, g2, b2, grosor);
+		base.draw(modo, r1, g1, b1, r2, g2, b2, grosor, 500);
 	glPopMatrix();
 };
 
@@ -579,24 +672,32 @@ _pata::_pata()
   perfil.push_back(aux);
   pata.parametros(perfil, 12, 1);
   altura_pata=2.0;
+	seleccionado.resize(3);
 }
 
-void _pata::draw(_modo modo, float r1, float g1, float b1, float r2, float g2, float b2, float grosor, float altura_patas)
+void _pata::draw(_modo modo, float r1, float g1, float b1, float r2, float g2, float b2, float grosor, float altura_patas, int pos, int nro)
 {
+	if (seleccionado[pos]){
+		r1 = 0;
+		g1 = 0;
+		b1 = 255;
+		r2 = 255;
+		g2 = 0;
+		b2 = 0;
+	}
 	glPushMatrix();
 		glTranslatef(0,-0.5+altura_patas*2,0);
 		glScalef(0.75,1,0.75);
-		pata.draw(modo, r1, g1, b1, r2, g2, b2, grosor);
+		pata.draw(modo, r1, g1, b1, r2, g2, b2, grosor, 600);
 	glPopMatrix();
 	glPushMatrix();
 		glTranslatef(0,-1+altura_patas,0);
 		glScalef(0.5,1,0.5);
-		pata.draw(modo, r1, g1, b1, r2, g2, b2, grosor);
+		pata.draw(modo, r1, g1, b1, r2, g2, b2, grosor, 700);
 	glPopMatrix();
-
 	glPushMatrix();
 		glTranslatef(0,-1.5,0);
 		glScalef(0.25,1,0.25);
-		pata.draw(modo, r1, g1, b1, r2, g2, b2, grosor);
+		pata.draw(modo, r1, g1, b1, r2, g2, b2, grosor, 800);
 	glPopMatrix();
 };

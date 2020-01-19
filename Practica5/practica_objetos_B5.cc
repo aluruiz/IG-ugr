@@ -30,7 +30,10 @@ GLfloat Size_x,Size_y,Front_plane,Back_plane;
 // variables que determninan la posicion y tamaño de la ventana X
 int Window_x=50,Window_y=50,Window_width=450,Window_high=450;
 
-int estadoRaton[3], xc, yc, mode[5], cambio=0, tipo_camara = 0;
+int estadoRaton[3], xc, yc, mode[5], cambio=0;
+int tipo_camara = 0;
+bool vista_multiple = false;
+bool tipo_seleccion = true;
 
 int Ancho=450, Alto=450;
 float factor=1.0;
@@ -55,52 +58,46 @@ _tripode tripode;
 void clean_window()
 {
 
-glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
 }
 
 
 //**************************************************************************
 // Funcion para definir la transformación de proyeccion
 //***************************************************************************
+void projection_alzado(){
+	glMatrixMode(GL_PROJECTION);
+  glLoadIdentity();
+  glViewport(0,Alto/2,Ancho/2,Alto/2);
 
-void change_projection()
-{
-//glMatrixMode(GL_PROJECTION);
-//glLoadIdentity();
-// formato(x_minimo,x_maximo, y_minimo, y_maximo,plano_delantero, plano_traser)
-//  plano_delantero>0  plano_trasero>PlanoDelantero)
-//glFrustum(-Size_x,Size_x,-Size_y,Size_y,Front_plane,Back_plane);
-glMatrixMode(GL_PROJECTION);
-glLoadIdentity();
-
-// formato(x_minimo,x_maximo, y_minimo, y_maximo,Front_plane, plano_traser)
-//  Front_plane>0  Back_plane>PlanoDelantero)
-/*if(modo_camara==1)
-  glViewport(0,0,Ancho,Alto);
-if(modo_camara==2)
-  glViewport()*/
-
-	if (tipo_camara==0 )
-	  glFrustum(-Size_x,Size_x,-Size_y,Size_y,Front_plane,Back_plane);
-	if (tipo_camara==1 )
-		glOrtho(-Size_x,Size_x,-Size_y,Size_y,Front_plane,Back_plane);
-	//glScalef(factor,factor,1);
+  if (tipo_camara) { // Proyección en perspectiva con un punto de fuga
+    glFrustum(-Size_x,Size_x,-Size_y,Size_y,Front_plane,Back_plane);
+  }
+  else {
+    glOrtho(-Size_x,Size_x,-Size_y,Size_y,Front_plane,Back_plane);
+    glScalef(factor,factor,1);
+  }
 }
 
-//**************************************************************************
-// Funcion para definir la transformación*ply1 de vista (posicionar la camara)
-//***************************************************************************
+void projection_planta(){
+	glMatrixMode(GL_PROJECTION);
+  glLoadIdentity();
+  glViewport(0,0,Ancho/2,Alto/2);
 
-void change_observer()
-{
+  glOrtho(-Size_x,Size_x,-Size_y,Size_y,Front_plane,Back_plane);
+  glRotatef(90,1,0,0);  // para verlo desde arriba
+  glScalef(factor,1.0,factor);
+}
 
-// posicion del observador
-glMatrixMode(GL_MODELVIEW);
-glLoadIdentity();
-glTranslatef(0,0,-Observer_distance);
-glRotatef(Observer_angle_x,1,0,0);
-glRotatef(Observer_angle_y,0,1,0);
+void projection_perfil(){
+	glMatrixMode(GL_PROJECTION);
+  glLoadIdentity();
+  glViewport(Ancho/2,Alto/2,Ancho/2,Alto/2);
 
+  // Cámara
+  glOrtho(-Size_x,Size_x,-Size_y,Size_y,Front_plane,Back_plane);
+  glRotatef(90,0,1,0);
+  glScalef(1.0,factor,factor);
 }
 
 //**************************************************************************
@@ -133,34 +130,252 @@ glEnd();
 // Funcion que dibuja los objetos
 //****************************2***********************************************
 
-void draw_objects()
+void draw_objects(){
+	switch (t_objeto){
+		case CUBO: cubo.draw(modo,1.0,0.0,0.0,0.0,1.0,0.0,2,1000);break;
+		case PIRAMIDE: piramide.draw(modo,1.0,0.0,0.0,0.0,1.0,0.0,2,1000);break;
+	  case OBJETO_PLY: ply.draw(modo,1.0,0.6,0.0,0.0,1.0,0.3,2,1000);break;
+	  case ROTACION: rotacion.draw(modo,1.0,0.0,0.0,0.0,1.0,0.0,2,1000);break;
+	  case ARTICULADO: tanque.draw(modo,0.5,0.7,0.2,0.3,0.6,0.3,2,1000);break;
+		case TRIPODE: tripode.draw(modo,0.5,0.7,0.2,0.3,0.6,0.3,2,1000);break;
+		}
+}
+
+void change_projection()
+{
+	/*glMatrixMode(GL_PROJECTION);
+	glLoadIdentity();
+
+	// formato(x_minimo,x_maximo, y_minimo, y_maximo,plano_delantero, plano_traser)
+	//  plano_delantero>0  plano_trasero>PlanoDelantero)
+	glFrustum(-Size_x,Size_x,-Size_y,Size_y,Front_plane,Back_plane);*/
+	glMatrixMode(GL_PROJECTION);
+
+    if(tipo_camara== 0){
+        //glLoadIdentity();
+        glViewport(0, 0, Window_width, Window_high);
+        //glFrustum(-Size_x,Size_x,-Size_y,Size_y,Front_plane,Back_plane);
+				glMatrixMode(GL_MODELVIEW);
+            draw_axis();
+            draw_objects();
+        glMatrixMode(GL_PROJECTION);
+    }
+
+    else if(tipo_camara == 1){
+        glLoadIdentity();
+        glViewport(0, 0, Window_width, Window_high);
+        glOrtho(-Size_x,Size_x,-Size_y,Size_y,Front_plane,Back_plane);
+				glMatrixMode(GL_MODELVIEW);
+            draw_axis();
+            draw_objects();
+
+        glMatrixMode(GL_PROJECTION);
+    }
+
+    else{
+        // Alzado
+        glLoadIdentity();
+        glViewport(0, Window_high / 2, Window_width / 2, Window_high / 2);
+        glOrtho(-Size_x * Observer_distance, Size_x * Observer_distance,
+                -Size_y * Observer_distance, Size_y * Observer_distance,
+                Front_plane, Back_plane);
+        glMatrixMode(GL_MODELVIEW);
+        glPushMatrix();
+        glRotatef(-Observer_angle_y, 0, 1, 0);
+        glRotatef(-Observer_angle_x, 1, 0, 0);
+        glRotatef(Observer_angle_y, 0, 1, 0);
+            draw_axis();
+            draw_objects();
+        glPopMatrix();
+        glMatrixMode(GL_PROJECTION);
+
+        // Perfil
+        glLoadIdentity();
+        glViewport(Window_width / 2, Window_high / 2, Window_width / 2, Window_high / 2);
+        glOrtho(-Size_x * Observer_distance, Size_x * Observer_distance,
+                -Size_y * Observer_distance, Size_y * Observer_distance,
+                Front_plane, Back_plane);
+        glMatrixMode(GL_MODELVIEW);
+        glPushMatrix();
+        glRotatef(-Observer_angle_y, 0, 1, 0);
+        glRotatef(-Observer_angle_x, 1, 0, 0);
+        glRotatef(Observer_angle_y + 90, 0, 1, 0);
+            draw_axis();
+            draw_objects();
+        glPopMatrix();
+        glMatrixMode(GL_PROJECTION);
+
+        // Planta
+        glLoadIdentity();
+        glViewport(0, 0, Window_width / 2, Window_high / 2);
+        glOrtho(-Size_x * Observer_distance, Size_x * Observer_distance,
+                -Size_y * Observer_distance, Size_y * Observer_distance,
+                Front_plane, Back_plane);
+        glMatrixMode(GL_MODELVIEW);
+        glPushMatrix();
+        glRotatef(-Observer_angle_y, 0, 1, 0);
+        glRotatef(-Observer_angle_x + 90, 1, 0, 0);
+        glRotatef(Observer_angle_y, 0, 1, 0);
+            draw_axis();
+            draw_objects();
+        glPopMatrix();
+        glMatrixMode(GL_PROJECTION);
+
+        // Proyección en perspectiva
+        glLoadIdentity();
+        glViewport(Window_width / 2, 0, Window_width / 2, Window_high / 2);
+        glFrustum(-Size_x, Size_x, -Size_y, Size_y, Front_plane, Back_plane);
+				glMatrixMode(GL_MODELVIEW);
+        draw_axis();
+        draw_objects();
+
+        glMatrixMode(GL_PROJECTION);
+    }
+    glMatrixMode(GL_MODELVIEW);
+}
+
+//**************************************************************************
+// Funcion para definir la transformación*ply1 de vista (posicionar la camara)
+//***************************************************************************
+
+void change_observer()
+{
+	// posicion del observador
+	glMatrixMode(GL_MODELVIEW);
+	glLoadIdentity();
+	glTranslatef(0,0,-Observer_distance);
+	glRotatef(Observer_angle_x,1,0,0);
+	glRotatef(Observer_angle_y,0,1,0);
+
+	change_projection();
+}
+
+void observer_alzado(){
+	glMatrixMode(GL_MODELVIEW);
+  glLoadIdentity();
+  glTranslatef(0,0,-Observer_distance); // Hace el zoom
+  glRotatef(Observer_angle_x,1,0,0);
+  glRotatef(Observer_angle_y,0,1,0);
+}
+
+void observer_planta(){
+	glMatrixMode(GL_MODELVIEW);
+  glLoadIdentity();
+  glTranslatef(0,-Observer_distance,0); // Hace el zoom
+  glRotatef(Observer_angle_x,1,0,0);
+  glRotatef(Observer_angle_y,0,1,0);
+}
+
+void observer_perfil(){
+	glMatrixMode(GL_MODELVIEW);
+  glLoadIdentity();
+  glTranslatef(-Observer_distance,0,0); // Hace el zoom
+  glRotatef(Observer_angle_x,1,0,0);
+  glRotatef(Observer_angle_y,0,1,0);
+}
+
+/*//**************************************************************************
+// Funcion que dibuja los ejes utilizando la primitiva grafica de lineas
+//***************************************************************************
+
+void draw_axis()
 {
 
-switch (t_objeto){
-	case CUBO: cubo.draw(modo,1.0,0.0,0.0,0.0,1.0,0.0,2);break;
-	case PIRAMIDE: piramide.draw(modo,1.0,0.0,0.0,0.0,1.0,0.0,2);break;
-        case OBJETO_PLY: ply.draw(modo,1.0,0.6,0.0,0.0,1.0,0.3,2);break;
-        case ROTACION: rotacion.draw(modo,1.0,0.0,0.0,0.0,1.0,0.0,2);break;
-        case ARTICULADO: tanque.draw(modo,0.5,0.7,0.2,0.3,0.6,0.3,2);break;
-				case TRIPODE: tripode.draw(modo,0.5,0.7,0.2,0.3,0.6,0.3,2);break;
-	}
-
+glDisable(GL_LIGHTING);
+glLineWidth(2);
+glBegin(GL_LINES);
+// eje X, color rojo
+glColor3f(1,0,0);
+glVertex3f(-AXIS_SIZE,0,0);
+glVertex3f(AXIS_SIZE,0,0);
+// eje Y, color verde
+glColor3f(0,1,0);
+glVertex3f(0,-AXIS_SIZE,0);
+glVertex3f(0,AXIS_SIZE,0);
+// eje Z, color azul
+glColor3f(0,0,1);
+glVertex3f(0,0,-AXIS_SIZE);
+glVertex3f(0,0,AXIS_SIZE);
+glEnd();
 }
 
 
 //**************************************************************************
+// Funcion que dibuja los objetos
+//****************************2***********************************************
+
+void draw_objects(){
+	switch (t_objeto){
+		case CUBO: cubo.draw(modo,1.0,0.0,0.0,0.0,1.0,0.0,2,1000);break;
+		case PIRAMIDE: piramide.draw(modo,1.0,0.0,0.0,0.0,1.0,0.0,2,1000);break;
+	  case OBJETO_PLY: ply.draw(modo,1.0,0.6,0.0,0.0,1.0,0.3,2,1000);break;
+	  case ROTACION: rotacion.draw(modo,1.0,0.0,0.0,0.0,1.0,0.0,2,1000);break;
+	  case ARTICULADO: tanque.draw(modo,0.5,0.7,0.2,0.3,0.6,0.3,2,1000);break;
+		case TRIPODE: tripode.draw(modo,0.5,0.7,0.2,0.3,0.6,0.3,2,1000);break;
+		}
+}*/
+
+//**************************************************************************
 //
 //***************************************************************************
+void scene(void){
+	glDrawBuffer(GL_FRONT);
+  clean_window();
 
-void draw(void)
-{
+  // Alzado
+  projection_alzado();
+  observer_alzado();
+  draw_axis();
+  draw_objects();
 
-clean_window();
-change_observer();
-draw_axis();
-draw_objects();
-glutSwapBuffers();
+  // Planta
+  projection_planta();
+  observer_planta();
+  draw_axis();
+  draw_objects();
+
+  // Perfil
+  projection_perfil();
+  observer_perfil();
+	draw_axis();
+  draw_objects();
+
+	glFlush();
 }
+
+void draw(void){
+	clean_window();
+	change_observer();
+	draw_axis();
+	draw_objects();
+	glutSwapBuffers();
+	/*clean_window();
+
+	if (tipo_camara == 0){
+		change_observer();
+
+	} else if (tipo_camara == 1) {
+		glOrtho(-Size_x,Size_x,-Size_y,Size_y,Front_plane,Back_plane);
+		glScalef(factor,factor,1);
+
+	} else if (tipo_camara == 2) {
+		scene();
+	}
+	draw_axis();
+	draw_objects();
+	glutSwapBuffers();*/
+
+	/*glDrawBuffer(GL_FRONT);
+    clean_window();
+    change_observer();
+    glutSwapBuffers();
+
+		glDrawBuffer(GL_BACK);
+    clean_window();
+    change_observer();
+    glutSwapBuffers();*/
+}
+
 
 
 
@@ -201,14 +416,17 @@ switch (toupper(Tecla1)){
 	case '2':modo=EDGES;break;
 	case '3':modo=SOLID;break;
 	case '4':modo=SOLID_CHESS;break;
-	case '5': tipo_camara = 0; break;
-	case '6': tipo_camara = 1; break;
+	case '6': vista_multiple = !vista_multiple; break;
+	case '7': tipo_seleccion = !tipo_seleccion; break;
         case 'P':t_objeto=PIRAMIDE;break;
         case 'C':t_objeto=CUBO;break;
         case 'O':t_objeto=OBJETO_PLY;break;
         case 'R':t_objeto=ROTACION;break;
         case 'A':t_objeto=ARTICULADO;break;
 				case 'F':t_objeto=TRIPODE;break;
+				case 'N': tipo_camara = 0; break;
+				case 'V': tipo_camara = 1; break;
+				case 'B': tipo_camara = 2; break;
 	}
 glutPostRedisplay();
 }
@@ -253,30 +471,6 @@ glutPostRedisplay();
 }
 
 //***************************************************************************
-// Funciones para uso de buffer trasero
-//***************************************************************************
-/*void draw_objects_seleccion(){
-    // Se muestran las caras solo por el lado frontal.
-    glEnable(GL_CULL_FACE);
-
-    // Para dibujar los objetos en el modo selección, las componentes r2, g2 y
-    // b2 son irrelevantes, al igual que g1 y b1, pues solo se utilizarán tres
-    // componentes r, g, b, de las cuales g y b se determinan por la cara a
-    // dibujar. Así, solo queda la componente r, que será única para los objetos
-    // simples, y se incrementará para cada objeto del modelo jerárquico, por lo
-    // que nos sirve un valor que deje espacio para el número de objetos de
-    // nuestro modelo jerárquico.
-    switch(t_objeto){
-				case CUBO: cubo.draw(COLOR_SELECTION, material, 100, 0, 0, 0, 0, 0, 2); break;
-				case PIRAMIDE: piramide.draw(COLOR_SELECTION, material, 100, 0, 0, 0, 0, 0, 2); break;
-			  case OBJETO_PLY: ply.draw(COLOR_SELECTION, material, 100, 0, 0, 0, 0, 0, 2); break;
-			  case ROTACION: rotacion.draw(COLOR_SELECTION, material, 100, 0, 0, 0, 0, 0, 2); break;
-			  case ARTICULADO: tanque.draw(COLOR_SELECTION, material, 100, 0, 0, 0, 0, 0, 2); break;
-				case TRIPODE: tripode.draw(COLOR_SELECTION, material, 100, 0, 0, 0, 0, 0, 2); break;
-	}
-}*/
-
-//***************************************************************************
 // Funciones para manejo de eventos del ratón
 //***************************************************************************
 
@@ -295,7 +489,7 @@ if(boton== GLUT_LEFT_BUTTON) {
       estadoRaton[2] = 2;
       xc=x;
       yc=y;
-      //pick_color(xc, yc);
+      pick_color(xc, yc);
     }
   }
 
@@ -349,113 +543,52 @@ if(estadoRaton[2]==1)
 //***************************************************************************
 // Funciones para la seleccion
 //************************************************************************
-/*
 
-void procesar_color(unsigned char color[3])
+void procesar_hits(GLint hits, GLuint *names)
 {
-	cout << "Color pinchado: (" << (int) color[0] << ", " << (int) color[1] <<
-             ", " << (int) color[2] << ")" << endl;
 
-     if(selec_cara){
-         int num_cara = color[1] * 255 + color[2];
+	// mostrar contenido de la pila
+	printf("%d hits:\n", hits);
+	for (int i = 0; i < hits; i++)
+		printf("Número: %d\n Min Z: %d\n Max Z: %d\n Nombre en la pila: %d\n",
+			(GLubyte)names[i * 4],
+			(GLubyte)names[i * 4 + 1],
+			(GLubyte)names[i * 4 + 2],
+			(GLubyte)names[i * 4 + 3]);
+	printf("\n");
 
-         switch(t_objeto){
-             case PIRAMIDE:      if(color[0] == 100 && num_cara < piramide.caras_selec.size()){
-                                     piramide.caras_selec[num_cara] = !piramide.caras_selec[num_cara];
-                                 }
-                                 break;
-             case CUBO:          if(color[0] == 100 && num_cara < cubo.caras_selec.size()){
-                                     cubo.caras_selec[num_cara] = !cubo.caras_selec[num_cara];
-                                 }
-                                 break;
-             case CONO:          if(color[0] == 100 && num_cara < cono.caras_selec.size()){
-                                     cono.caras_selec[num_cara] = !cono.caras_selec[num_cara];
-                                 }
-                                 break;
-             case CILINDRO:      if(color[0] == 100 && num_cara < cilindro.caras_selec.size()){
-                                     cilindro.caras_selec[num_cara] = !cilindro.caras_selec[num_cara];
-                                 }
-                                 break;
-             case ESFERA:        if(color[0] == 100 && num_cara < esfera.caras_selec.size()){
-                                     esfera.caras_selec[num_cara] = !esfera.caras_selec[num_cara];
-                                 }
-                                 break;
-             case OBJETO_PLY:    if(color[0] == 100 && num_cara < ply.caras_selec.size()){
-                                     ply.caras_selec[num_cara] = !ply.caras_selec[num_cara];
-                                 }
-                                 break;
-             case ARTICULADO:    if(100 <= color[0] && color[0] <= 124){
-                                     robot.robot_caras_selec[color[0] % 100][num_cara] =
-                                     !robot.robot_caras_selec[color[0] % 100][num_cara];
-                                 }
-                                 break;
- 	    }
-     }
-     else{
-         switch(t_objeto){
-             case PIRAMIDE:      if(color[0] == 100){
-                                     piramide.seleccionado = !piramide.seleccionado;
-                                 }
-                                 break;
-             case CUBO:          if(color[0] == 100){
-                                     cubo.seleccionado = !cubo.seleccionado;
-                                 }
-                                 break;
-             case CONO:          if(color[0] == 100){
-                                     cono.seleccionado = !cono.seleccionado;
-                                 }
-                                 break;
-             case CILINDRO:      if(color[0] == 100){
-                                     cilindro.seleccionado = !cilindro.seleccionado;
-                                 }
-                                 break;
-             case ESFERA:        if(color[0] == 100){
-                                     esfera.seleccionado = !esfera.seleccionado;
-                                 }
-                                 break;
-             case OBJETO_PLY:    if(color[0] == 100){
-                                     ply.seleccionado = !ply.seleccionado;
-                                 }
-                                 break;
-             case ARTICULADO:    if(100 <= color[0] && color[0] < 109){
-                                     robot.objeto_selec[0] = !robot.objeto_selec[0];
-                                 }
-                                 else if(109 <= color[0] && color[0] < 113){
-                                     robot.objeto_selec[1] = !robot.objeto_selec[1];
-                                 }
-                                 else if(113 <= color[0] && color[0] < 117){
-                                     robot.objeto_selec[2] = !robot.objeto_selec[2];
-                                 }
-                                 else if(117 <= color[0] && color[0] < 121){
-                                     robot.objeto_selec[3] = !robot.objeto_selec[3];
-                                 }
-                                 else if(121 <= color[0] && color[0] < 123){
-                                     robot.objeto_selec[4] = !robot.objeto_selec[4];
-                                 }
-                                 else if(123 <= color[0] && color[0] < 125){
-                                     robot.objeto_selec[5] = !robot.objeto_selec[5];
-                                 }
-                                 break;
-         }
-     }
- }
-
-
+	if(tipo_seleccion){
+		switch (names[3]) {
+			case 1: tripode.pata.seleccionado[0] = !tripode.pata.seleccionado[0]; break;
+			case 2: tripode.pata.seleccionado[1] = !tripode.pata.seleccionado[1]; break;
+			case 3: tripode.pata.seleccionado[2] = !tripode.pata.seleccionado[2]; break;
+			case 4: tripode.cabeza.seleccionado = !tripode.cabeza.seleccionado; break;
+			case 5: tripode.camara.seleccionado = !tripode.camara.seleccionado;break;
+		}
+	} else {
+		if((names[3]>=100)&&(names[3]<200)){
+ 		 	tripode.camara.armazon.vec_tri[names[3]-100] = !tripode.camara.armazon.vec_tri[names[3]-100];
+		} else if((names[3]>=200)&&(names[3]<300)){
+ 		 	tripode.camara.click.vec_tri[names[3]-200] = !tripode.camara.click.vec_tri[names[3]-200];
+		} else if((names[3]>=300)&&(names[3]<400)) {
+	 		 tripode.camara.objetivo.vec_tri[names[3]-300] = !tripode.camara.objetivo.vec_tri[names[3]-300];
+	 	 } else if((names[3]>=400)&&(names[3]<500)) {
+	 		 tripode.cabeza.base.vec_tri[names[3]-400] = !tripode.cabeza.base.vec_tri[names[3]-400];
+	 	 } else if((names[3]>=500)&&(names[3]<600)){
+ 		 	tripode.cabeza.base.vec_tri[names[3]-500] = !tripode.cabeza.base.vec_tri[names[3]-500];
+	 	 } else if((names[3]>=600)&&(names[3]<700)){
+ 		 	tripode.pata.pata.vec_tri[names[3]-600] = !tripode.pata.pata.vec_tri[names[3]-600];
+	 	 } else if((names[3]>=700)&&(names[3]<800)) {
+	 		 tripode.pata.pata.vec_tri[names[3]-700] = !tripode.pata.pata.vec_tri[names[3]-700];
+	 	 } else if((names[3]>=800)&&(names[3]<900)) {
+	 		 tripode.pata.pata.vec_tri[names[3]-800] = !tripode.pata.pata.vec_tri[names[3]-800];
+		 }
+	}
+}
 
 void pick_color(int x, int y)
 {
-/*GLint viewport[4];
-unsigned char pixel[3];
-
-glGetIntegerv(GL_VIEWPORT, viewport);
-glReadBuffer(GL_BACK);
-glReadPixels(x,viewport[3]-y,1,1,GL_RGB,GL_UNSIGNED_BYTE,(GLubyte *) &pixel[0]);
-printf(" valor x %d, valor y %d, color %d, %d, %d \n",x,y,pixel[0],pixel[1],pixel[2]);
-
-procesar_color(pixel);
-glutPostRedisplay();*/
-
-	/*	GLuint selectBuf[100]={0};
+		GLuint selectBuf[100]={0};
 		GLint viewport[4], hits=0;
 		// Declarar buffer de selección
 		glSelectBuffer(100, selectBuf);
@@ -479,10 +612,10 @@ glutPostRedisplay();*/
 		glLoadIdentity();
 		glFrustum(-Size_x,Size_x,-Size_y,Size_y,Front_plane,Back_plane);
 		// Procesar el contenido del buffer de selección
-		procesar_color(hits, selectBuf);
+		procesar_hits(hits, selectBuf);
 		// Dibujar la escena para actualizar cambios
 		draw();
-}*/
+}
 
 //***************************************************************************
 // Funcion de incializacion
