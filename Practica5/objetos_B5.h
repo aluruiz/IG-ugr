@@ -11,7 +11,7 @@
 using namespace std;
 
 const float AXIS_SIZE=5000;
-typedef enum{POINTS,EDGES,SOLID_CHESS,SOLID} _modo;
+typedef enum{POINTS,EDGES,SOLID_CHESS,SOLID, SELECTION} _modo;
 
 //*************************************************************************
 // clase punto
@@ -42,10 +42,12 @@ void draw_solido(float r, float g, float b, int nro);
 void draw_solido_ajedrez(float r1, float g1, float b1, float r2, float g2, float b2, int nro);
 void draw(_modo modo, float r1, float g1, float b1, float r2, float g2, float b2, float grosor, int nro);
 void draw_solido_cara(float r1, float g1, float b1, float r2, float g2, float b2, int n);
+void draw_seleccion_color(int r, int g, int b);
 //draw_solido_seleccion_completa(float r, float g, float b);
 //draw_solido_seleccion_cara(float r, float g, float b);
 
-vector<bool> vec_tri;
+bool seleccionado;
+vector<bool> caras_selec;
 
 vector<_vertex3i> caras;
 };
@@ -59,7 +61,7 @@ class _cubo: public _triangulos3D
 {
 public:
 	_cubo(float tam=0.5);
-	void draw(_modo modo, float r1, float g1, float b1, float r2, float g2, float b2, float grosor, int nro);
+	//void draw(_modo modo, float r1, float g1, float b1, float r2, float g2, float b2, float grosor, int nro);
 };
 
 
@@ -100,71 +102,6 @@ vector<_vertex3f> perfil;
 int num;
 };
 
-
-//************************************************************************
-// objeto articulado: tanque
-//************************************************************************
-
-class _chasis: public _triangulos3D
-{
-public:
-       _chasis();
-void 	draw(_modo modo, float r1, float g1, float b1, float r2, float g2, float b2, float grosor, int nro );
-
-float altura;
-
-protected:
-_rotacion  rodamiento;
-_cubo  base;
-};
-
-//************************************************************************
-
-class _torreta: public _triangulos3D
-{
-public:
-       _torreta();
-void 	draw(_modo modo, float r1, float g1, float b1, float r2, float g2, float b2, float grosor, int nro );
-
-float altura;
-float anchura;
-
-protected:
-_cubo  base;
-_piramide parte_trasera;
-};
-
-//************************************************************************
-
-class _tubo: public _triangulos3D
-{
-public:
-       _tubo();
-void 	draw(_modo modo, float r1, float g1, float b1, float r2, float g2, float b2, float grosor, int nro );
-
-protected:
-_rotacion tubo_abierto; // caña del cañón
-};
-
-//************************************************************************
-
-class _tanque: public _triangulos3D
-{
-public:
-       _tanque();
-void 	draw(_modo modo, float r1, float g1, float b1, float r2, float g2, float b2, float grosor, int nro );
-
-float giro_tubo;
-float giro_torreta;
-
-float giro_tubo_min;
-float giro_tubo_max;
-
-protected:
-_chasis  chasis;
-_torreta  torreta;
-_tubo     tubo;
-};
 
 //************************************************************************
 // objeto articulado: tripode
@@ -234,6 +171,11 @@ float MAX_alfa;
 float MIN_alfa;
 float altura_pata_max;
 float altura_pata_min;
+
+vector<bool> objecto_selec;
+static int n_objeto;
+static vector<vector<bool>> tripode_caras_selec;
+
 _pata pata;
 _cabeza cabeza;
 _camara camara;

@@ -16,7 +16,7 @@ using namespace std;
 // tipos
 typedef enum{CUBO, PIRAMIDE, OBJETO_PLY, ROTACION, ARTICULADO, TRIPODE} _tipo_objeto;
 _tipo_objeto t_objeto=CUBO;
-_modo   modo=POINTS;
+_modo   modo=SOLID_CHESS;
 
 // variables que definen la posicion de la camara en coordenadas polares
 GLfloat Observer_distance;
@@ -28,7 +28,7 @@ bool animando=false;
 GLfloat Size_x,Size_y,Front_plane,Back_plane;
 
 // variables que determninan la posicion y tamaño de la ventana X
-int Window_x=50,Window_y=50,Window_width=450,Window_high=450;
+int Window_x=50,Window_y=50,Window_width=600,Window_high=600;
 
 int estadoRaton[3], xc, yc, mode[5], cambio=0;
 int tipo_camara = 0;
@@ -45,7 +45,6 @@ _cubo cubo;
 _piramide piramide(0.85,1.3);
 _objeto_ply  ply;
 _rotacion rotacion;
-_tanque tanque;
 _tripode tripode;
 
 // _objeto_ply *ply1;
@@ -136,12 +135,21 @@ void draw_objects(){
 		case PIRAMIDE: piramide.draw(modo,1.0,0.0,0.0,0.0,1.0,0.0,2,1000);break;
 	  case OBJETO_PLY: ply.draw(modo,1.0,0.6,0.0,0.0,1.0,0.3,2,1000);break;
 	  case ROTACION: rotacion.draw(modo,1.0,0.0,0.0,0.0,1.0,0.0,2,1000);break;
-	  case ARTICULADO: tanque.draw(modo,0.5,0.7,0.2,0.3,0.6,0.3,2,1000);break;
 		case TRIPODE: tripode.draw(modo,0.5,0.7,0.2,0.3,0.6,0.3,2,1000);break;
 		}
 }
 
-void change_projection()
+void draw_objects_selection(){
+	switch (t_objeto){
+		case CUBO: cubo.draw(SELECTION,100,0.0,0.0,0.0,1.0,0.0,2,1000);break;
+		case PIRAMIDE: piramide.draw(SELECTION,100,0.0,0.0,0.0,1.0,0.0,2,1000);break;
+	  case OBJETO_PLY: ply.draw(SELECTION,100,0.6,0.0,0.0,1.0,0.3,2,1000);break;
+	  case ROTACION: rotacion.draw(SELECTION,100,0.0,0.0,0.0,1.0,0.0,2,1000);break;
+		case TRIPODE: tripode.draw(SELECTION,100,0.7,0.2,0.3,0.6,0.3,2,1000);break;
+		}
+}
+
+void change_projection(bool front)
 {
 	/*glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
@@ -152,22 +160,32 @@ void change_projection()
 	glMatrixMode(GL_PROJECTION);
 
     if(tipo_camara== 0){
-        //glLoadIdentity();
+        glLoadIdentity();
         glViewport(0, 0, Window_width, Window_high);
-        //glFrustum(-Size_x,Size_x,-Size_y,Size_y,Front_plane,Back_plane);
+        glFrustum(-Size_x,Size_x,-Size_y,Size_y,Front_plane,Back_plane);
 				glMatrixMode(GL_MODELVIEW);
-            draw_axis();
-            draw_objects();
+				if (front){
+					draw_axis();
+	        draw_objects();
+				} else {
+					draw_objects_selection();
+				}
         glMatrixMode(GL_PROJECTION);
     }
 
     else if(tipo_camara == 1){
         glLoadIdentity();
         glViewport(0, 0, Window_width, Window_high);
-        glOrtho(-Size_x,Size_x,-Size_y,Size_y,Front_plane,Back_plane);
+				glOrtho(-Size_x * Observer_distance, Size_x * Observer_distance,
+                -Size_y * Observer_distance, Size_y * Observer_distance,
+                Front_plane, Back_plane);
 				glMatrixMode(GL_MODELVIEW);
-            draw_axis();
-            draw_objects();
+				if (front){
+					draw_axis();
+	        draw_objects();
+				} else {
+					draw_objects_selection();
+				}
 
         glMatrixMode(GL_PROJECTION);
     }
@@ -184,8 +202,12 @@ void change_projection()
         glRotatef(-Observer_angle_y, 0, 1, 0);
         glRotatef(-Observer_angle_x, 1, 0, 0);
         glRotatef(Observer_angle_y, 0, 1, 0);
-            draw_axis();
-            draw_objects();
+				if (front){
+					draw_axis();
+	        draw_objects();
+				} else {
+					draw_objects_selection();
+				}
         glPopMatrix();
         glMatrixMode(GL_PROJECTION);
 
@@ -200,8 +222,14 @@ void change_projection()
         glRotatef(-Observer_angle_y, 0, 1, 0);
         glRotatef(-Observer_angle_x, 1, 0, 0);
         glRotatef(Observer_angle_y + 90, 0, 1, 0);
-            draw_axis();
-            draw_objects();
+
+				if (front){
+					draw_axis();
+	        draw_objects();
+				} else {
+					draw_objects_selection();
+				}
+
         glPopMatrix();
         glMatrixMode(GL_PROJECTION);
 
@@ -216,8 +244,12 @@ void change_projection()
         glRotatef(-Observer_angle_y, 0, 1, 0);
         glRotatef(-Observer_angle_x + 90, 1, 0, 0);
         glRotatef(Observer_angle_y, 0, 1, 0);
-            draw_axis();
-            draw_objects();
+				if (front){
+					draw_axis();
+	        draw_objects();
+				} else {
+					draw_objects_selection();
+				}
         glPopMatrix();
         glMatrixMode(GL_PROJECTION);
 
@@ -226,8 +258,12 @@ void change_projection()
         glViewport(Window_width / 2, 0, Window_width / 2, Window_high / 2);
         glFrustum(-Size_x, Size_x, -Size_y, Size_y, Front_plane, Back_plane);
 				glMatrixMode(GL_MODELVIEW);
-        draw_axis();
-        draw_objects();
+				if (front){
+					draw_axis();
+	        draw_objects();
+				} else {
+					draw_objects_selection();
+				}
 
         glMatrixMode(GL_PROJECTION);
     }
@@ -238,7 +274,7 @@ void change_projection()
 // Funcion para definir la transformación*ply1 de vista (posicionar la camara)
 //***************************************************************************
 
-void change_observer()
+void change_observer(bool front)
 {
 	// posicion del observador
 	glMatrixMode(GL_MODELVIEW);
@@ -247,7 +283,7 @@ void change_observer()
 	glRotatef(Observer_angle_x,1,0,0);
 	glRotatef(Observer_angle_y,0,1,0);
 
-	change_projection();
+	change_projection(front);
 }
 
 void observer_alzado(){
@@ -343,12 +379,12 @@ void scene(void){
 	glFlush();
 }
 
-void draw(void){
-	clean_window();
+void draw(){
+	/*clean_window();
 	change_observer();
 	draw_axis();
 	draw_objects();
-	glutSwapBuffers();
+	glutSwapBuffers();*/
 	/*clean_window();
 
 	if (tipo_camara == 0){
@@ -365,15 +401,14 @@ void draw(void){
 	draw_objects();
 	glutSwapBuffers();*/
 
-	/*glDrawBuffer(GL_FRONT);
+	glDrawBuffer(GL_FRONT);
     clean_window();
-    change_observer();
-    glutSwapBuffers();
+    change_observer(true);
 
 		glDrawBuffer(GL_BACK);
     clean_window();
-    change_observer();
-    glutSwapBuffers();*/
+    change_observer(false);
+    glFlush();
 }
 
 
@@ -393,8 +428,9 @@ float Aspect_ratio;
 
 Aspect_ratio=(float) Alto1/(float )Ancho1;
 Size_y=Size_x*Aspect_ratio;
-change_projection();
-glViewport(0,0,Ancho1,Alto1);
+change_projection(true);
+Window_width = Ancho1;
+Window_high = Alto1;
 glutPostRedisplay();
 }
 
@@ -422,7 +458,6 @@ switch (toupper(Tecla1)){
         case 'C':t_objeto=CUBO;break;
         case 'O':t_objeto=OBJETO_PLY;break;
         case 'R':t_objeto=ROTACION;break;
-        case 'A':t_objeto=ARTICULADO;break;
 				case 'F':t_objeto=TRIPODE;break;
 				case 'N': tipo_camara = 0; break;
 				case 'V': tipo_camara = 1; break;
@@ -448,17 +483,11 @@ switch (Tecla1){
 	case GLUT_KEY_LEFT:Observer_angle_y--;break;
 	case GLUT_KEY_RIGHT:Observer_angle_y++;break;
 	case GLUT_KEY_UP:Observer_angle_x--;break;
-	case GLUT_KEY_DOWN:Observer_angle_x++;break;
 	case GLUT_KEY_PAGE_UP:Observer_distance*=1.2;break;
 	case GLUT_KEY_PAGE_DOWN:Observer_distance/=1.2;break;
-        case GLUT_KEY_F1:tanque.giro_tubo+=1;
-                         if (tanque.giro_tubo>tanque.giro_tubo_max) tanque.giro_tubo=tanque.giro_tubo_max;
-                         break;
-        case GLUT_KEY_F2:tanque.giro_tubo-=1;
-                         if (tanque.giro_tubo<tanque.giro_tubo_min) tanque.giro_tubo=tanque.giro_tubo_min;
-                         break;break;
-        case GLUT_KEY_F3:tanque.giro_torreta+=5;tripode.alfa+=5; break;
-        case GLUT_KEY_F4:tanque.giro_torreta-=5;tripode.alfa-=5; break;
+	case GLUT_KEY_DOWN:Observer_angle_x++;break;
+        case GLUT_KEY_F3:tripode.alfa+=5; break;
+        case GLUT_KEY_F4:tripode.alfa-=5; break;
         case GLUT_KEY_F5:if(tripode.zoom < tripode.MAX_zoom )tripode.zoom+=0.1; tripode.beta+=5;break;
 				case GLUT_KEY_F6:if(tripode.zoom > tripode.MIN_zoom )tripode.zoom-=0.1; tripode.beta-=5;break;
 				case GLUT_KEY_F7:animando = !animando;break;
@@ -528,7 +557,7 @@ Observer_angle_y=y;
 
 void RatonMovido( int x, int y )
 {
-float x0, y0, xn, yn;
+/*float x0, y0, xn, yn;
 if(estadoRaton[2]==1)
     {getCamara(&x0,&y0);
      yn=y0+(y-yc);
@@ -537,6 +566,18 @@ if(estadoRaton[2]==1)
      xc=x;
      yc=y;
      glutPostRedisplay();
+	 }*/
+
+	 int x0, y0, xn, yn;
+
+    if(estadoRaton[2]==1){
+        Observer_angle_y += (x - xc);
+        Observer_angle_x += (y - yc);
+
+        xc = x;
+        yc = y;
+
+        glutPostRedisplay();
     }
 }
 
@@ -544,7 +585,7 @@ if(estadoRaton[2]==1)
 // Funciones para la seleccion
 //************************************************************************
 
-void procesar_hits(GLint hits, GLuint *names)
+/*void procesar_hits(GLint hits, GLuint *names)
 {
 
 	// mostrar contenido de la pila
@@ -615,6 +656,90 @@ void pick_color(int x, int y)
 		procesar_hits(hits, selectBuf);
 		// Dibujar la escena para actualizar cambios
 		draw();
+}*/
+
+void procesar_color(unsigned char color[3]){
+    cout << "Color pinchado: (" << (int) color[0] << ", " << (int) color[1] <<
+            ", " << (int) color[2] << ")" << endl;
+
+    if(tipo_seleccion){
+        int num_cara = color[1] * 255 + color[2];
+
+        switch(t_objeto){
+            case PIRAMIDE:      if(color[0] == 100 && num_cara < piramide.caras_selec.size()){
+                                    piramide.caras_selec[num_cara] = !piramide.caras_selec[num_cara];
+                                }
+                                break;
+            case CUBO:          if(color[0] == 100 && num_cara < cubo.caras_selec.size()){
+                                    cubo.caras_selec[num_cara] = !cubo.caras_selec[num_cara];
+                                }
+                                break;
+						case ROTACION:      if(color[0] == 100 && num_cara < rotacion.caras_selec.size()){
+																		rotacion.caras_selec[num_cara] = !rotacion.caras_selec[num_cara];
+																}
+																break;
+            case OBJETO_PLY:    if(color[0] == 100 && num_cara < ply.caras_selec.size()){
+                                    ply.caras_selec[num_cara] = !ply.caras_selec[num_cara];
+                                }
+                                break;
+            case TRIPODE:    if(100 <= color[0] && color[0] <= 113){
+                                    tripode.tripode_caras_selec[color[0] % 100][num_cara] =
+                                    !tripode.tripode_caras_selec[color[0] % 100][num_cara];
+                                }
+                                break;
+	    }
+    }
+    else{
+        switch(t_objeto){
+            case PIRAMIDE:      if(color[0] == 100){
+                                    piramide.seleccionado = !piramide.seleccionado;
+                                }
+                                break;
+            case CUBO:          if(color[0] == 100){
+                                    cubo.seleccionado = !cubo.seleccionado;
+                                }
+                                break;
+            case OBJETO_PLY:    if(color[0] == 100){
+                                    ply.seleccionado = !ply.seleccionado;
+                                }
+                                break;
+						case ROTACION:    if(color[0] == 100){
+                                    rotacion.seleccionado = !rotacion.seleccionado;
+                                }
+                                break;
+            case TRIPODE:    if(100 <= color[0] && color[0] < 103){
+                                    tripode.objecto_selec[0] = !tripode.objecto_selec[0];
+                                }
+                                else if(103 <= color[0] && color[0] < 106){
+                                    tripode.objecto_selec[1] = !tripode.objecto_selec[1];
+                                }
+                                else if(106 <= color[0] && color[0] < 109){
+                                    tripode.objecto_selec[2] = !tripode.objecto_selec[2];
+                                }
+                                else if(109 <= color[0] && color[0] < 111){
+                                    tripode.objecto_selec[3] = !tripode.objecto_selec[3];
+                                }
+                                else if(111 <= color[0] && color[0] < 114){
+                                    tripode.objecto_selec[4] = !tripode.objecto_selec[4];
+                                }
+                                break;
+        }
+    }
+}
+
+
+//***************************************************************************
+// Función para obtener el color dado un punto de la ventana
+//***************************************************************************
+
+void pick_color(int x, int y){
+    unsigned char pixel[3];
+
+    glReadBuffer(GL_BACK);
+    glReadPixels(x, Window_high - y, 1, 1, GL_RGB, GL_UNSIGNED_BYTE, (GLubyte *) &pixel[0]);
+
+    procesar_color(pixel);
+    glutPostRedisplay();
 }
 
 //***************************************************************************
@@ -641,7 +766,7 @@ glClearColor(1,1,1,1);
 
 // se habilita el z-bufer
 glEnable(GL_DEPTH_TEST);
-change_projection();
+change_projection(true);
 glViewport(0,0,Window_width,Window_high);
 
 }
@@ -713,7 +838,7 @@ aux.x=0.5;aux.y=1.2;aux.z=0.0;
 perfil2.push_back(aux);
 aux.x=0.3;aux.y=1.4;aux.z=0.0;
 perfil2.push_back(aux);
-rotacion.parametros(perfil2,6,1);
+rotacion.parametros(perfil2,25,1);
 
 
 // se llama a la inicialización de glut
